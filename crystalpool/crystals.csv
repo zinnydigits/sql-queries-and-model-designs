@@ -1,0 +1,263 @@
+SELECT *
+FROM crystal_pool;
+
+-- let's stage the data
+CREATE TABLE crystalpool 
+AS SELECT * FROM crystal_pool
+WHERE 1 = 0;
+
+INSERT INTO crystalpool
+SELECT * FROM crystal_pool;
+
+-- Now we will be working with the staged data (crystalpool)
+SELECT * FROM crystalpool;
+
+-- I observed the data is unnormalized, so let's create more tables
+-- We will create tables for transactions, products, salesperson, months and saleslocation
+DROP TABLE transactions;
+
+CREATE TABLE transactions (
+	transaction_no SERIAL PRIMARY KEY,
+	product_id INT,
+	salesperson_id INT,
+	sales_location VARCHAR(30)
+);
+CREATE TABLE products(
+	product_id SERIAL PRIMARY KEY,
+	product_code INT,
+	product_desc VARCHAR(20),
+	store_cost FLOAT,
+	saleprice FLOAT,
+	profit FLOAT,
+	commission FLOAT
+);
+
+CREATE TABLE salespersons (
+	salesperson_id SERIAL PRIMARY KEY,
+	salesperson VARCHAR(100),
+	commission FLOAT
+);
+
+CREATE TABLE saleslocations(
+	saleslocation VARCHAR(20)
+);
+
+-- transactions, products, salespersons, and saleslocations table created
+-- Now let's insert values into these tables
+
+-- inserting values into salespersons table
+INSERT INTO salespersons 
+	(salesperson, commission)
+SELECT 
+	DISTINCT salesperson,
+	commission
+FROM crystalpool;
+	
+SELECT * FROM salespersons;
+
+-- inserting values into saleslocations table
+INSERT INTO saleslocations (saleslocation)
+SELECT DISTINCT sales_location FROM crystalpool;
+
+SELECT * FROM saleslocations;
+
+-- inserting values into products table
+INSERT INTO products (
+	product_code,
+	product_desc,
+	store_cost,
+	saleprice,
+	profit,
+	commission
+)
+SELECT DISTINCT product_code,
+	product_desc,
+	store_cost,
+	sale_price,
+	(sale_price - store_cost),
+	 sale_price * 0.1
+FROM crystalpool;
+
+SELECT * FROM products;
+
+-- INSERTING VALUES INTO TRANSACTION TABLE
+INSERT INTO transactions 
+	(transaction_no, 
+	 product_id,
+	 salesperson_id,
+	 sales_location
+)
+SELECT 
+	c.transaction_no, 
+	p.product_id,
+	s.salesperson_id,
+	c.sales_location
+FROM crystalpool c
+LEFT JOIN products p
+ON c.product_code = p.product_code
+INNER JOIN salespersons s
+ON s.salesperson = c.salesperson;
+
+
+SELECT * FROM transactions;
+
+CREATE TABLE months (
+	mon VARCHAR(10),
+	transaction_no INT
+)
+INSERT INTO months(
+	mon, transaction_no
+)
+SELECT month, transaction_no
+	FROM crystalpool;
+	
+-- Now we've created and inserted values into all the tables
+-- Let begin the analysis
+
+-- Total Sales for each month
+SELECT m.mon, SUM(p.saleprice)
+FROM months m
+INNER JOIN transactions t
+ON t.transaction_no = m.transaction_no
+LEFT JOIN products p
+ON p.product_id = t.product_id
+GROUP BY m.mon
+ORDER BY SUM(saleprice) DESC;
+
+
+-- Total Count of Sales for Each Product
+SELECT p.product_desc, COUNT(t.product_id)
+FROM products p
+RIGHT JOIN transactions t
+ON p.product_id = t.product_id
+GROUP BY p.product_desc
+ORDER BY COUNT(t.product_id) DESC;
+
+-- Total Sales for Each Products
+SELECT p.product_desc, SUM(p.saleprice)
+FROM transactions t
+LEFT JOIN products p
+ON t.product_id = p.product_id
+GROUP BY p.product_desc
+ORDER BY SUM(saleprice);
+
+-- Total Profit made by each salesperson
+SELECT s.salesperson, SUM(p.profit)
+FROM salespersons s
+JOIN transactions t
+ON s.salesperson_id = t.salesperson_id
+JOIN products p
+ON p.product_id = t.product_id
+GROUP BY s.salesperson
+ORDER BY SUM(p.profit) DESC;
+
+-- Average Commission by Salespersons
+SELECT 
+	SUM(p.commission)/ COUNT(DISTINCT t.salesperson_id) 
+	AS avg_commission
+FROM products p
+RIGHT JOIN transactions t
+ON p.product_id = t.product_id;
+
+-- Sales by Location
+SELECT t.sales_location, SUM(saleprice)
+FROM transactions t
+JOIN products p
+USING (product_id)
+GROUP BY t.sales_location
+ORDER BY SUM(saleprice) DESC;
+
+-- monthly sales summary (total sales, total cost and total commission)
+
+SELECT m.mon,
+	SUM(p.saleprice),
+	SUM(p.store_cost),
+	SUM(p.commission)
+FROM transactions t
+LEFT JOIN products p
+ON t.product_id = p.product_id
+LEFT JOIN months m
+ON t.transaction_no = m.transaction_no
+GROUP BY mon;
+ 
+ -- top performing salesperson by total sales
+ 
+SELECT s.salesperson,
+	SUM(saleprice) AS "Total Sales"
+FROM transactions t
+LEFT JOIN salespersons s
+ON t.salesperson_id = s.salesperson_id
+LEFT JOIN products p
+ON p.product_id = t.product_id
+GROUP BY s.salesperson
+ORDER BY SUM(saleprice)
+LIMIT 1;
+
+-- product performance total sales and profit for each product
+SELECT p.product_desc,
+	SUM(p.product_id)
+FROM transactions t
+LEFT JOIN products p
+ON t.product_id = p.product_id
+GROUP BY p.product_desc
+ORDER BY SUM(p.product_id) DESC;
+
+-- total commission for each person per month and percentage of total sales that commission represents
+
+WITH totalsales AS (
+	SELECT 
+	m.mon AS mon,
+	s.salesperson AS salesperson,
+	p.commission AS commission,
+	SUM(saleprice) AS sp_sales
+	FROM transactions t
+	JOIN products p
+		ON t.product_id = p.product_id
+	JOIN salespersons s
+		ON s.salesperson_id = t.salesperson_id
+	JOIN months m
+		ON m.transaction_no = t.transaction_no
+	GROUP BY m.mon, s.salesperson 
+	ORDER BY m.mon, s.salesperson, SUM(p.commission) DESC
+
+)
+SELECT mon, 
+		salesperson, 
+		SUM(commission),
+		((sp_sales/SUM(sp_sales) * 100)) AS percentage_sales
+FROM totalsales
+	GROUP BY mon, salesperson
+	ORDER BY mon, salesperson, SUM(commission) DESC;
+		
+
+
+
+
+
+SELECT 
+	m.mon,
+	s.salesperson,
+	SUM(p.commission) AS commission,
+	SUM(SELECT p.saleprice FROM products p
+		RIGHT JOIN transactions t
+		ON t.product_id = p.product_id
+		LEFT JOIN salespersons s
+		ON s.salesperson_id = t.salesperson_id
+		GROUP BY s.salesperson
+	   )/SUM(saleprice)
+FROM transactions t
+JOIN products p
+ON t.product_id = p.product_id
+JOIN salespersons s
+ON s.salesperson_id = t.salesperson_id
+JOIN months m
+ON m.transaction_no = t.transaction_no
+GROUP BY m.mon, s.salesperson 
+ORDER BY m.mon, s.salesperson, SUM(p.commission) DESC;
+
+
+
+
+-- calculate products being bought together
+
+-- 
