@@ -3,13 +3,13 @@
 ## Project Overview
 This project aims to analyze sales data from the Crystal Pool dataset. The analysis involves normalizing the data, inserting it into relevant tables, and performing various SQL queries to extract meaningful insights. The goal is to understand sales trends, product performance, and salesperson effectiveness.
 
-![crystal pool dashboard](https://github.com/zinnydigits/crystalpool/blob/main/crystalpool-db.PNG)
+![crystal pool dashboard](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/crystalpool/crystalpool-db.PNG)
 
 ## Tools and Functions Used
 ### Tools
 - **PostgreSQL**: An open-source relational database system used for storing and managing the dataset.
 - **SQL**: The language used to interact with the PostgreSQL database for data staging, normalization, insertion, and analysis.
-- **Power BI**: To visualize insights from the normalized table. The file can be found [here](https://github.com/zinnydigits/crystalpool/blob/main/crystalpool.pbix).
+- **Power BI**: To visualize insights from the normalized table. The file can be found [here](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/crystalpool/crystalpool.pbix).
 
 ### Functions and SQL Commands
 - `SELECT`: Used to query data from a database.
@@ -25,7 +25,7 @@ This project aims to analyze sales data from the Crystal Pool dataset. The analy
 - `Window Function`: To calculate cumulative totals across specified partition.
 
 ## Normalization
-Normalization is the process of organizing data in a database to reduce redundancy and improve data integrity. In this project, normalization involved decomposing the unnormalized `crystal_pool` table into multiple related tables, each containing a specific aspect of the data. This approach ensures that data is stored in a structured manner, making it easier to maintain and query. The [normalization process](https://github.com/zinnydigits/crystalpool/blob/main/code.md), [raw dataset](https://github.com/zinnydigits/crystalpool/blob/main/crystals.csv) and the [normalized dataset](https://github.com/zinnydigits/crystalpool/blob/main/normalized.xlsx) are all in the crystalpool repository.
+Normalization is the process of organizing data in a database to reduce redundancy and improve data integrity. In this project, normalization involved decomposing the unnormalized `crystal_pool` table into multiple related tables, each containing a specific aspect of the data. This approach ensures that data is stored in a structured manner, making it easier to maintain and query. The [normalization process](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/crystalpool/code.md), [raw dataset](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/crystalpool/crystals.csv) and the [normalized dataset](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/crystalpool/normalized.xlsx) are all in the crystalpool repository.
 
 ## Code
 ``` sql
@@ -53,7 +53,7 @@ SELECT
 FROM each_person
 ORDER BY total_commission DESC, mon DESC, salesperson;
 ```
-The complete SQL [codes](https://github.com/zinnydigits/crystalpool/blob/main/code.md) have been uploaded to the repository.
+The complete SQL [codes](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/crystalpool/code.md) have been uploaded to the repository.
 
 ## Explanatory Data Analysis
 - July had the best sales which is roughly 100% higher than the second best, August. December had the poorest sales which is 10% of July sales.
