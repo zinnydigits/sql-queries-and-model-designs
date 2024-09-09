@@ -121,7 +121,7 @@ FROM supermart_staging
 GROUP BY day_of_week
 ORDER BY "Total Sales" DESC;
 ```
-The [supermart dataset](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/supermart-sql/supermart.csv), complete [sql_codes](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/supermart-sql/supermart.sql) and [PowerBI](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/supermart-sql/supermart-pbi) file used for visualization has been uploaded to this repository.
+The [supermart dataset](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/supermart-sql/supermart.csv), complete [sql_codes](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/supermart-sql/supermart.sql) and [PowerBI](https://github.com/zinnydigits/sql-queries-and-model-designs/blob/main/supermart-sql/supermart.pbix) file used for visualization has been uploaded to this repository.
 
 ## Conclusion
 This documentation provides insights into the Supermart project, showcasing the SQL queries used for data staging, cleaning, and analysis.
